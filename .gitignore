@@ -1,0 +1,17 @@
+# Gitでの除外ファイル
+# 依存関係ライブラリ
+/frontend/node_modules
+/backend/target
+
+# ビルド成果物
+/frontend/.next
+/frontend/build 
+/backend/build
+
+# OS.IDE固有のファイル
+.DS_Store 
+.vscode/
+
+# 機密情報ファイル
+.env
+*.env.local
