@@ -3,6 +3,9 @@
 # ベースとなるJava環境を指定
 FROM openjdk:17-jdk-slim
 
+# SSHクライアントをインストールする (GitがSSH経由で通信するために必要)
+RUN apt-get update && apt-get install -y openssh-client
+
 # 作業ディレクトリを作成
 WORKDIR /app
 
