@@ -5,60 +5,61 @@ version: "3.8"
 services:
   # バックエンド（Spring Boot）の設定
   backend:
-    build: ./backend # ./backend フォルダのDockerfileを使ってビルド
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    user: root
     container_name: todo-backend-container
     ports:
-      - "8080:8080" # PCの8080ポートをコンテナの8080ポートに接続
+      - "8080:8080" # ← バックエンドのポート
+      - "3000:3000" # ← フロントエンドのポートもbackendから公開
     environment:
-      # データベースの接続情報（dbサービスに接続）
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/todo_db
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-    depends_on:
-      - db # dbサービスが起動してからbackendを起動する
-
-  frontend:
-    build: ./frontend
-    container_name: todo-frontend-container
-    ports:
-      - "3000:3000" # Next.jsのデフォルトポート
     volumes:
-      - ./frontend:/app # コード変更を即時反映させるため
-      - /app/.next # ビルドキャッシュは同期対象から除外
-      - /app/node_modules # node_modulesも同期対象から除外
+      - ../:/workspace:cached # プロジェクト全体を/workspaceにマウント
+      - /workspace/backend/target # ビルド成果物は同期しない
+      - /workspace/frontend/node_modules # node_modulesも同期しない
+      - /workspace/frontend/.next # .nextも同期しない
+    command: sleep infinity # ←【変更点3】CMDではなくcommandで上書き
+    depends_on:
+      - db
 
-    # データベース (PostgreSQL) の設定
+  # フロントエンド（Next.js）の設定
+  frontend:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu # 何か軽いイメージでOK
+    command: sleep infinity
+
+  # データベース (PostgreSQL) の設定
   db:
-    image: postgres:14 # 公式のPostgreSQLイメージを使用
+    image: postgres:14
     container_name: todo-db-container
     ports:
-      - "5432:5432" # PCの5432ポートをコンテナの5432ポートに接続
+      - "5432:5432"
     environment:
-      # データベース名、ユーザー名、パスワードを設定
       - POSTGRES_DB=todo_db
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
     volumes:
-      postgres_data: # データの保存をDockerに管理させる
+      - postgres_data:/var/lib/postgresql/data # ←【修正点3】永続化のパスを明示的に指定
 
-    pgadmin:
-      image: dpage/pgadmin4 # pgAdminの公式イメージ
-      container_name: my-pgadmin-container
-      environment:
-        # pgAdminにログインするための初回ユーザーとパスワード
-        - PGADMIN_DEFAULT_EMAIL=admin@example.com
-        - PGADMIN_DEFAULT_PASSWORD=admin
-      ports:
-        # PCの5050番ポートをコンテナの80番ポートに接続
-        - "5050:80"
-      volumes:
-        # pgAdminの設定データ（サーバー接続情報など）を永続化
-        - pgadmin_data:/var/lib/pgadmin
-      depends_on:
-        - db # dbサービスが起動してからpgAdminを起動
+  # pgAdminの設定
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: my-pgadmin-container
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
 
-# データベースのデータをPC上に保存するための設定
+# データの永続化設定
 volumes:
   postgres_data:
   pgadmin_data:

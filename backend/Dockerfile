@@ -19,5 +19,8 @@ COPY src ./src
 # アプリケーションをビルド（コンパイル）
 RUN ./mvnw package -DskipTests
 
-# 実行
-ENTRYPOINT ["java", "-jar", "target/todo-backend-0.0.1-SNAPSHOT.jar"]
+# # 実行
+# ENTRYPOINT ["java", "-jar", "target/todo-backend-0.0.1-SNAPSHOT.jar"]
+
+# コンテナを起動し続けるためのコマンド
+CMD ["sleep", "infinity"]
