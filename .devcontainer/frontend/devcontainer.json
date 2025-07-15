@@ -1,0 +1,27 @@
+/// .devcontainer/frontend/devcontainer.json
+{
+  // VSCodeのウィンドウ左下に表示される名前
+  "name": "ToDo App (Frontend)",
+
+  // docker-compose.ymlの場所を指定
+  "dockerComposeFile": ["../../docker-compose.yml"],
+
+  // docker-compose.yml内のどのサービスを使うかを指定
+  "service": "frontend",
+
+  // コンテナー内でVSCodeが開く作業フォルダ
+  "workspaceFolder": "/app",
+
+  // VSCodeの推奨拡張機能を指定（React/TS開発に便利）
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "mhutchie.git-graph",
+        "mosapride.zenkaku",
+        "oderwat.indent-rainbow"
+      ]
+    }
+  }
+}

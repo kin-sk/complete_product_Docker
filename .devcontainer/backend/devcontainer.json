@@ -1,0 +1,31 @@
+// .devcontainer/backend/devcontainer.json
+{
+  // VSCodeのウィンドウ左下に表示される名前
+  "name": "ToDo App (Backend)",
+
+  // docker-compose.ymlの場所を指定
+  // このファイルから見て2階層上のため "../../" となる
+  "dockerComposeFile": ["../../docker-compose.yml"],
+
+  // docker-compose.yml内のどのサービスを使うかを指定
+  "service": "backend",
+
+  // コンテナー内でVSCodeが開く作業フォルダ
+  "workspaceFolder": "/app",
+
+  // コンテナーに接続するユーザー
+  "remoteUser": "root",
+
+  // VSCodeの推奨拡張機能を指定（Java開発に便利）
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "mhutchie.git-graph",
+        "mosapride.zenkaku",
+        "oderwat.indent-rainbow"
+      ]
+    }
+  }
+}

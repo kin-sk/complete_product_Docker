@@ -10,7 +10,11 @@
 
 # OS.IDE固有のファイル
 .DS_Store 
-.vscode/
+.vscode/*
+
+# ただし、チームで共有したいファイルは無視しない（コミット対象にする）
+!/.vscode/settings.json
+!/.vscode/extensions.json
 
 # 機密情報ファイル
 .env

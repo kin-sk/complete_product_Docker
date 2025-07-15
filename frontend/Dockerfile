@@ -13,7 +13,7 @@ COPY package.json ./
 # Next.jsはネイティブモジュールに依存すことことがあるため、必要なビルドツールをインストール
 RUN apk add --no-cache gcompat
 
-# あぷりけーしょんのソースコードをコピー
+# アプリケーションのソースコードをコピー
 COPY . .
 
 # Next.jsが使用するポートを公開

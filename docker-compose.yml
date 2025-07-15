@@ -6,31 +6,41 @@ services:
   # バックエンド（Spring Boot）の設定
   backend:
     build:
-      context: ../backend
+      context: ./backend
       dockerfile: Dockerfile
     user: root
     container_name: todo-backend-container
     ports:
       - "8080:8080" # ← バックエンドのポート
-      - "3000:3000" # ← フロントエンドのポートもbackendから公開
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/todo_db
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     volumes:
-      - ../:/workspace:cached # プロジェクト全体を/workspaceにマウント
-      - /workspace/backend/target # ビルド成果物は同期しない
-      - /workspace/frontend/node_modules # node_modulesも同期しない
-      - /workspace/frontend/.next # .nextも同期しない
+      - ./backend:/app
     command: sleep infinity # ←【変更点3】CMDではなくcommandで上書き
     depends_on:
       - db
+    restart: "no" # 開発中は手動で制御することが多いので明示的にOFF
 
   # フロントエンド（Next.js）の設定
   frontend:
-    image: mcr.microsoft.com/devcontainers/base:ubuntu # 何か軽いイメージでOK
-    command: sleep infinity
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: todo-frontend-container
+    ports:
+      # 3000番のポートをコンテナの3000番ポートに接続
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - backend
+    restart: "no" # 開発中は手動で制御することが多いので明示的にOFF
 
   # データベース (PostgreSQL) の設定
   db:
@@ -43,7 +53,7 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
     volumes:
-      - postgres_data:/var/lib/postgresql/data # ←【修正点3】永続化のパスを明示的に指定
+      - db-data:/var/lib/postgresql/data # データの永続化
 
   # pgAdminの設定
   pgadmin:
@@ -58,8 +68,9 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - db
+    restart: unless-stopped
 
 # データの永続化設定
 volumes:
-  postgres_data:
+  db-data:
   pgadmin_data:
