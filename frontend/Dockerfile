@@ -19,6 +19,9 @@ COPY . .
 # Next.jsが使用するポートを公開
 EXPOSE 3000
 
+# Gitをインストール
+RUN apt-get update && apt-get install -y git
+
 # 開発サーバーを起動
 CMD ["npm", "run", "dev"]
 

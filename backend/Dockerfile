@@ -19,6 +19,9 @@ COPY src ./src
 # アプリケーションをビルド（コンパイル）
 RUN ./mvnw package -DskipTests
 
+# Gitをインストール
+RUN apt-get update && apt-get install -y git
+
 # # 実行
 # ENTRYPOINT ["java", "-jar", "target/todo-backend-0.0.1-SNAPSHOT.jar"]
 
