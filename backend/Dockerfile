@@ -13,6 +13,9 @@ COPY mvnw pom.xml ./
 # Mavenで依存ライブラリをダウンロード
 RUN ./mvnw dependency:go-offline
 
+# 他の開発者のmvnwの実行権限をコンテナに付与
+RUN chmod +x mvnw
+
 # アプリケーションのソースコードをコピー
 COPY src ./src
 
@@ -20,7 +23,7 @@ COPY src ./src
 RUN ./mvnw package -DskipTests
 
 # Gitをインストール
-RUN apt-get update && apt-get install -y git
+RUN apk add --no-cache git
 
 # # 実行
 # ENTRYPOINT ["java", "-jar", "target/todo-backend-0.0.1-SNAPSHOT.jar"]

@@ -20,7 +20,7 @@ COPY . .
 EXPOSE 3000
 
 # Gitをインストール
-RUN apt-get update && apt-get install -y git
+RUN apk add --no-cache git
 
 # 開発サーバーを起動
 CMD ["npm", "run", "dev"]
