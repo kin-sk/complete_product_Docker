@@ -1,27 +1,56 @@
-/// .devcontainer/frontend/devcontainer.json
 {
-  // VSCodeのウィンドウ左下に表示される名前
-  "name": "ToDo App (Frontend)",
+  "name": "ToDo App (Frontend - Vite + React)",
 
   // docker-compose.ymlの場所を指定
   "dockerComposeFile": ["../../docker-compose.yml"],
 
-  // docker-compose.yml内のどのサービスを使うかを指定
+  // 使用するサービス
   "service": "frontend",
 
-  // コンテナー内でVSCodeが開く作業フォルダ
+  // コンテナ内の作業ディレクトリ
   "workspaceFolder": "/app",
 
-  // VSCodeの推奨拡張機能を指定（React/TS開発に便利）
+  // VSCodeの設定とおすすめ拡張機能
   "customizations": {
     "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true
+      },
       "extensions": [
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "mhutchie.git-graph",
-        "mosapride.zenkaku",
-        "oderwat.indent-rainbow"
+        // 必須拡張機能
+        "esbenp.prettier-vscode", // コードフォーマッター
+        "dbaeumer.vscode-eslint", // ESLint
+        "bradlc.vscode-tailwindcss", // Tailwind CSS（使う場合）
+
+        // 便利な拡張機能
+        "mhutchie.git-graph", // Gitグラフ表示
+        "mosapride.zenkaku", // 全角スペース可視化
+        "oderwat.indent-rainbow", // インデントを色分け
+        "usernamehw.errorlens", // エラー行に直接表示
+
+        // React開発用
+        "dsznajder.es7-react-js-snippets" // Reactスニペット
       ]
+    }
+  },
+
+  // コンテナ起動後に実行するコマンド
+  "postCreateCommand": "npm install",
+
+  // ポートフォワーディング
+  "forwardPorts": [5173],
+
+  // ポートの説明
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "notify"
     }
   }
 }

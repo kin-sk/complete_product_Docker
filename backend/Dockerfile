@@ -1,32 +1,20 @@
-# Dockerfile for Spring Boot backend
+# 超軽量版 Dockerfile for Spring Boot（開発専用）
 
-# ベースとなるJava環境を指定
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 
-# 作業ディレクトリを作成
 WORKDIR /app
 
-# Mavenのラッパーファイルを先にコピーして、依存関係をキャッシュしやすくする
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+# 必要なパッケージをインストール
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash
 
-# Mavenで依存ライブラリをダウンロード
-RUN ./mvnw dependency:go-offline
+# Mavenラッパーをインストール
+RUN curl -o maven-wrapper.jar https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar
 
-# 他の開発者のmvnwの実行権限をコンテナに付与
-RUN chmod +x mvnw
+# アプリケーションのポート
+EXPOSE 8080
 
-# アプリケーションのソースコードをコピー
-COPY src ./src
-
-# アプリケーションをビルド（コンパイル）
-RUN ./mvnw package -DskipTests
-
-# Gitをインストール
-RUN apk add --no-cache git
-
-# # 実行
-# ENTRYPOINT ["java", "-jar", "target/todo-backend-0.0.1-SNAPSHOT.jar"]
-
-# コンテナを起動し続けるためのコマンド
+# コンテナを起動し続ける（VS Codeから接続するため）
 CMD ["sleep", "infinity"]

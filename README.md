@@ -1,163 +1,496 @@
-# ToDo Application (Next.js & Spring Boot)
+# 📝 超軽量版 ToDo App (Vite + React + Spring Boot)
 
-このプロジェクトは、Next.js(Frontend)とSpring Boot(Backend)をDockerでコンテナ化して開発するToDoアプリケーションです。
-VSCodeのDev Containers機能を利用し、誰でもすぐに統一された開発環境を構築できます。
+**メモリ 8GB 環境でも快適に動作**する、Docker + Dev Containers 構成の ToDo アプリケーションです。
 
-## 概要
+## 🎯 プロジェクトの特徴
 
--   **Frontend**: Next.js, React, TypeScript
--   **Backend**: Spring Boot, Java
--   **Database**: PostgreSQL
--   **DB Management**: pgAdmin
--   **Environment**: Docker, Docker Compose, VSCode Dev Containers
+- **超軽量設計**: Alpine Linux ベースで最小メモリ使用量
+- **初学者フレンドリー**: 詳しい解説とコメント付き
+- **チーム開発向け**: フロント・バック完全分離
+- **本番環境対応**: Nginx リバースプロキシ付き
 
-## 必須ツール (Prerequisites)
+## 📊 技術スタック
 
-開発を始める前に、お使いのPCに以下のソフトウェアをインストールしてください。
+| レイヤー  | 技術                      |
+| --------- | ------------------------- |
+| Frontend  | Vite + React + TypeScript |
+| Backend   | Spring Boot 3.2 + Java 17 |
+| Database  | PostgreSQL 16             |
+| Proxy     | Nginx (Alpine)            |
+| Container | Docker + Docker Compose   |
 
--   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
--   [Visual Studio Code (VSCode)](https://code.visualstudio.com/)
--   VSCode拡張機能: [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+## 💾 メモリ使用量
 
-## 環境構築ガイド (Setup Guide)
+### 開発時（pgAdmin なし）
 
-以下の手順に従って、開発環境をセットアップしてください。
+```
+Frontend (Node.js Alpine):  約 150MB
+Backend (Java 17 Alpine):   約 350MB (JVM制限: 256MB)
+PostgreSQL (Alpine):        約 100MB
+───────────────────────────────────
+合計:                      約 600MB
+```
+
+### 本番確認時（Nginx 起動）
+
+```
+上記 + Nginx (Alpine):     約 650MB
+```
+
+**従来構成（2GB 超）から約 70%削減！**
+
+## 🚀 クイックスタート
+
+### 前提条件
+
+- Docker Desktop インストール済み
+- VS Code インストール済み
+- VS Code 拡張機能「Dev Containers」インストール済み
 
 ### 1. リポジトリのクローン
 
-まず、このリポジトリをご自身のPCにクローンします。
-
 ```bash
-git clone https://github.com/[あなたのユーザー名]/[リポジトリ名].git
-cd [リポジトリ名]
+git clone [リポジトリURL]
+cd lightweight-todo-app
 ```
 
-**取り込み方は各々お任せします。**
+### 2. フロントエンド開発の開始
 
+1. VS Code でプロジェクトフォルダを開く
+2. `Ctrl+Shift+P` (Mac: `Cmd+Shift+P`) でコマンドパレット
+3. `Dev Containers: Reopen in Container` を選択
+4. `ToDo App (Frontend - Vite + React)` を選択
+5. 初回は Docker イメージビルドで 2-3 分待つ
 
-### 2. VSCodeで開発コンテナを起動
+```bash
+# コンテナ内で自動的に npm install が実行される
+# 完了したら開発サーバー起動
+npm run dev
+```
 
-このプロジェクトでは、フロントエンドとバックエンドをそれぞれ別の開発コンテナで開きます。
+→ http://localhost:5173 でアクセス可能
 
-#### フロントエンド用コンテナの起動
+### 3. バックエンド開発の開始
 
-1.  VSCodeで、クローンしたプロジェクトフォルダを開きます。
-2.  コマンドパレットを開きます (`Ctrl+Shift+P` または `Cmd+Shift+P`)。
-3.  `Dev Containers: Reopen in Container` と入力し、実行します。
-5.  VSCodeがプロジェクト内の設定を読み込み、以下の選択肢を表示します。
-    - `... in ToDo App (Frontend)`
-    - `... in ToDo App (Backend)`
-6.  **`ToDo App (Frontend)`** を選択します。
-7.  初回はDockerイメージのビルドに時間がかかります。完了すると、新しいVSCodeウィンドウが開き、フロントエンドのコンテナに接続された状態になります。
+1. **新しい VS Code ウィンドウ**を開く (`Ctrl+Shift+N`)
+2. 同じプロジェクトフォルダを開く
+3. `Dev Containers: Reopen in Container`
+4. `ToDo App (Backend - Spring Boot)` を選択
 
-#### バックエンド用コンテナの起動
+```bash
+# コンテナ内で
+./mvnw spring-boot:run
+```
 
-1.  **新しいVSCodeウィンドウをもう一つ開きます** (`Ctrl+Shift+N` または `Cmd+Shift+N`)。
-2.  新しいウィンドウで、再度同じプロジェクトフォルダを開きます。
-3.  上記と同様に、コマンドパレットから `Dev Containers: Reopen in Container` を実行します。
-4.  今度は **`ToDo App (Backend)`** を選択します。
-5.  完了すると、もう一つのVSCodeウィンドウがバックエンドのコンテナに接続されます。
+→ http://localhost:8080/api で API アクセス可能
 
-これで、**VSCodeが2つ開き、それぞれがフロントエンドとバックエンドのコンテナに接続された状態**になります。
+### 4. データベース接続確認
 
-### 3. フロントエンドの依存関係をインストール
+**方法 1: VS Code 拡張機能（おすすめ）**
 
-フロントエンドのコンテナを初めて起動した際、一度だけ手動で依存関係をインストールする必要があります。
+- 「PostgreSQL」拡張機能をインストール
+- ホスト: `localhost`, ポート: `5432`
+- データベース: `todo_db`, ユーザー: `user`, パスワード: `password`
 
-1.  フロントエンドコンテナに接続しているVSCodeのウィンドウで、ターミナルを開きます (`Ctrl+Shift+@`)。
-2.  以下のコマンドを実行します。
+**方法 2: psql コマンド**
 
-    ```bash
-    npm install
-    ```
+```bash
+docker exec -it todo-db psql -U user -d todo_db
+```
 
-これで、開発の準備は完了です！
+## 🔧 Nginx リバースプロキシの使い方
 
-## アプリケーションの起動 (Running the Application)
+### リバースプロキシとは？
 
-### フロントエンド (Next.js)
+**問題**: フロント(5173)とバック(8080)が別ポート
 
-1.  フロントエンドコンテナのターミナルで、以下のコマンドを実行します。
+```
+ブラウザ → http://localhost:5173 (フロント)
+        ↓
+        × CORS エラー！
+        ↓
+        → http://localhost:8080/api (バック)
+```
 
-    ```bash
-    npm run dev
-    ```
-2.  Webブラウザで **`http://localhost:3000`** を開くと、ToDoアプリの画面が表示されます。
+**解決**: Nginx で 1 つのポート(80)に統合
 
-### バックエンド (Spring Boot)
+```
+ブラウザ → http://localhost (Nginx)
+        ↓
+        ├→ / → フロント (5173)
+        └→ /api → バック (8080)
+```
 
-1.  バックエンドコンテナのターミナルで、以下のコマンドを実行します。
+### なぜ必要？
 
-    ```bash
-    ./mvnw spring-boot:run
-    ```
-    またはVSCodeのデバックツールを使用して`実行`をクリック
+#### 1. **CORS 問題の解決**
 
-    
-2.  Spring Bootアプリケーションが起動し、`localhost:8080` でAPIリクエストを受け付けられる状態になります。
+- 異なるポート = 異なるオリジン → ブラウザがブロック
+- Nginx 経由 = 同じオリジン → 問題なし
 
-### データベース管理 (pgAdmin)
+#### 2. **本番環境と同じ構成**
 
-1.  Webブラウザで **`http://localhost:5050`** を開きます。
-2.  `docker-compose.yml` に設定された以下の情報でログインします。
-    - **Email:** `admin@example.com`
-    - **Password:** `admin`
-3.  ログイン後、データベースサーバーに接続します。
-    - 左のツリーから `Servers` を右クリック > `Create` > `Server...`
-    - **General タブ**:
-        - `Name`: `todo-db-local` (任意)
-    - **Connection タブ**:
-        - `Host name/address`: `db`
-        - `Port`: `5432`
-        - `Maintenance database`: `todo_db`
-        - `Username`: `user`
-        - `Password`: `password`
-    - `Save` をクリックして接続します。
+- 開発: Nginx 使用 = 本番と同じ動作確認
+- デプロイ時のトラブルを事前に発見
 
-## 開発ワークフロー (Development Workflow)
+#### 3. **URL の統一**
 
-### Gitの利用
+- フロント: `http://localhost/`
+- API: `http://localhost/api/todos`
+- シンプルで分かりやすい
 
-Gitの操作 (commit, push, pullなど) は、**すべてコンテナに接続されたVSCode内で行ってください。**
-ローカルPCのターミナルでGitコマンドを実行する必要はありません。
+### Nginx 起動方法
 
-#### 初回のみの設定
-各コンテナで初めてGitを使う際に、以下のコマンドであなたの情報を設定してください。
+```bash
+# 本番環境確認時のみ起動
+docker compose --profile production up -d nginx
+
+# 確認
+http://localhost        # フロントエンド
+http://localhost/api    # バックエンド
+
+# 停止
+docker compose --profile production down nginx
+```
+
+### 設定ファイルの解説
+
+`nginx/nginx.conf` の重要部分：
+
+```nginx
+# バックエンドAPIへの転送
+location /api/ {
+    proxy_pass http://backend:8080;  # backendコンテナの8080番へ
+    proxy_set_header Host $host;     # ホスト名を保持
+}
+
+# フロントエンドへの転送
+location / {
+    proxy_pass http://frontend:5173;  # frontendコンテナの5173番へ
+
+    # WebSocket対応（Viteのホットリロード用）
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+}
+```
+
+**ポイント**:
+
+- `location /api/` → `/api`で始まる URL はバックエンドへ
+- `location /` → それ以外はフロントエンドへ
+- WebSocket ヘッダー → Vite のホットリロードが動く
+
+## ☁️ AWS 本番環境デプロイ
+
+### 推奨構成: EC2 + RDS
+
+```
+┌───────────────────────────────────┐
+│ EC2 (t2.micro - 無料枠)           │
+│  ├─ Docker Compose                │
+│  ├─ Frontend (ビルド済み)         │
+│  ├─ Backend (Spring Boot)         │
+│  └─ Nginx                          │
+└───────────────────────────────────┘
+          ↓ 接続
+┌───────────────────────────────────┐
+│ RDS PostgreSQL (db.t3.micro)      │
+│ (無料枠)                          │
+└───────────────────────────────────┘
+```
+
+### AWS 無料枠の内容
+
+| サービス       | 無料枠内容                | 制限        |
+| -------------- | ------------------------- | ----------- |
+| **EC2**        | t2.micro (1vCPU, 1GB RAM) | 月 750 時間 |
+| **RDS**        | db.t3.micro (PostgreSQL)  | 月 750 時間 |
+| **ストレージ** | 汎用 SSD 30GB             | -           |
+| **データ転送** | 月 15GB                   | -           |
+
+**注意**: 12 ヶ月間のみ無料。制限超過で課金。
+
+### メリット・デメリット比較
+
+#### パターン A: EC2 + RDS (おすすめ)
+
+**メリット:**
+
+- データベースが自動バックアップ
+- スケールアップが簡単
+- DB の可用性が高い
+- 本番運用に適している
+
+**デメリット:**
+
+- 設定項目が多い
+- 無料枠が 12 ヶ月のみ
+- 2 つのサービスを管理
+
+**コスト（無料枠終了後）:**
+
+- EC2: 約$8/月
+- RDS: 約$15/月
+- 合計: 約$23/月
+
+#### パターン B: EC2 のみ（DB もコンテナ）
+
+**メリット:**
+
+- 設定がシンプル
+- Docker Compose そのまま使える
+- コストが安い（EC2 のみ）
+
+**デメリット:**
+
+- DB のバックアップが手動
+- EC2 停止で DB も停止
+- メモリ 1GB で全部動かすのは厳しい
+
+**コスト（無料枠終了後）:**
+
+- EC2: 約$8/月のみ
+
+#### パターン C: Lightsail（初心者向け）
+
+**メリット:**
+
+- 料金が固定で分かりやすい
+- 最初の 3 ヶ月無料
+- セットアップが簡単
+
+**デメリット:**
+
+- スケール性が低い
+- AWS の他サービスと連携しにくい
+
+**コスト:**
+
+- $5/月プラン（1GB RAM）
+- $10/月プラン（2GB RAM）おすすめ
+
+### 初学者へのおすすめ
+
+**1 位: EC2 + RDS (無料枠 12 ヶ月)**
+
+- 理由: 本番環境に近い、学習になる
+- 手順: AWS チュートリアル豊富
+
+**2 位: Lightsail ($10/月プラン)**
+
+- 理由: シンプル、すぐ始められる
+- 手順: ワンクリックで Docker 環境構築
+
+**3 位: EC2 のみ（DB 込み）**
+
+- 理由: 無料で長く使える（自己責任）
+- 手順: docker-compose をそのまま使用
+
+## 📂 プロジェクト構造
+
+```
+lightweight-todo-app/
+├── .devcontainer/              # Dev Containers設定
+│   ├── frontend/
+│   │   └── devcontainer.json  # フロントエンド用設定
+│   └── backend/
+│       └── devcontainer.json  # バックエンド用設定
+│
+├── frontend/                   # Vite + React + TypeScript
+│   ├── src/
+│   │   ├── App.tsx            # メインコンポーネント
+│   │   ├── App.css
+│   │   ├── main.tsx           # エントリーポイント
+│   │   └── index.css
+│   ├── Dockerfile             # 軽量版Dockerfile
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── vite.config.ts
+│   └── index.html
+│
+├── backend/                    # Spring Boot + Java
+│   ├── src/
+│   │   └── main/
+│   │       └── java/
+│   │           └── com/example/todo/
+│   ├── Dockerfile             # 軽量版Dockerfile
+│   ├── pom.xml                # Maven設定
+│   └── mvnw                   # Mavenラッパー
+│
+├── nginx/                      # Nginxリバースプロキシ
+│   └── nginx.conf             # 詳細コメント付き設定
+│
+├── docker-compose.yml          # 全コンテナ管理
+└── README.md                   # このファイル
+```
+
+## 🛠️ よくあるコマンド
+
+### Docker 操作
+
+```bash
+# コンテナ起動
+docker compose up -d
+
+# コンテナ停止
+docker compose down
+
+# ログ確認
+docker compose logs -f backend
+
+# コンテナに入る
+docker exec -it todo-backend sh
+
+# ディスク使用量確認
+docker system df
+
+# 不要イメージ削除
+docker system prune -a
+```
+
+### フロントエンド
+
+```bash
+# 開発サーバー起動
+npm run dev
+
+# 本番ビルド
+npm run build
+
+# ビルド確認
+npm run preview
+
+# 型チェック
+tsc --noEmit
+```
+
+### バックエンド
+
+```bash
+# アプリ起動
+./mvnw spring-boot:run
+
+# ビルド
+./mvnw clean package
+
+# テスト実行
+./mvnw test
+
+# 依存関係更新
+./mvnw dependency:resolve
+```
+
+## 🐛 トラブルシューティング
+
+### メモリ不足でコンテナが起動しない
+
+**Docker Desktop のメモリ制限を確認:**
+
+1. Docker Desktop → Settings → Resources
+2. Memory: 最低 2GB、推奨 4GB
+3. Apply & Restart
+
+### フロントからバックエンドに接続できない
+
+**ネットワーク確認:**
+
+```bash
+# backendコンテナに入る
+docker exec -it todo-backend sh
+
+# フロントエンドコンテナへ疎通確認
+ping frontend
+
+# postgresに接続できるか確認
+ping db
+```
+
+### ホットリロードが効かない
+
+**Vite の設定確認:**
+`vite.config.ts`に以下があるか確認
+
+```typescript
+server: {
+  watch: {
+    usePolling: true,  // これがないとDocker環境でホットリロードしない
+  },
+}
+```
+
+### Git のエラー
+
+**コンテナ内で初回設定:**
 
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
-### コードフォーマット
+## 📚 学習リソース
 
-このプロジェクトでは、ファイルを保存した際に自動でコードが整形されるように設定されています。
+### フロントエンド
 
--   **Frontend (TypeScript/React)**: Prettier
--   **Backend (Java)**: Language Support for Java by Red Hat
+- [React 公式チュートリアル](https://ja.react.dev/learn)
+- [Vite 公式ドキュメント](https://ja.vitejs.dev/)
+- [TypeScript 公式](https://www.typescriptlang.org/ja/)
 
-手動でフォーマットを気にする必要はありません。
+### バックエンド
 
-## ディレクトリ構成
+- [Spring Boot 公式ガイド](https://spring.io/guides)
+- [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
+
+### インフラ
+
+- [Docker 公式ドキュメント](https://docs.docker.com/get-started/)
+- [Nginx 設定リファレンス](http://nginx.org/en/docs/)
+- [AWS 無料枠](https://aws.amazon.com/jp/free/)
+
+## 🤝 チーム開発のベストプラクティス
+
+### Git 運用
+
+```bash
+# 機能ブランチ作成
+git checkout -b feature/add-todo-filter
+
+# コミット
+git add .
+git commit -m "feat: ToDoフィルター機能追加"
+
+# プッシュ
+git push origin feature/add-todo-filter
+```
+
+### コミットメッセージ規約
 
 ```
-.
-├── .devcontainer/    # VSCode Dev Containersの設定ファイル
-│   ├── backend/
-│   └── frontend/
-├── .vscode/          # VSCodeのワークスペース設定（フォーマッターなど）
-├── backend/          # Spring Bootのソースコード
-├── frontend/         # Next.jsのソースコード
-├── docker-compose.yml  # Dockerコンテナ群の定義ファイル
-└── README.md         # このファイル
+feat: 新機能追加
+fix: バグ修正
+docs: ドキュメント更新
+style: コードスタイル修正
+refactor: リファクタリング
+test: テスト追加
+chore: ビルド設定など
 ```
 
-## トラブルシューティング
+## 📝 今後の拡張案
 
--   **コンテナがうまく起動しない、または変更が反映されない場合:**
-    - コマンドパレットから `Dev Containers: Rebuild and Reopen in Container` を実行してみてください。これにより、コンテナがクリーンな状態で再構築されます。
+- [ ] 認証機能（JWT）
+- [ ] ToDo カテゴリ分け
+- [ ] 期限設定・通知
+- [ ] ダークモード
+- [ ] Docker 本番用マルチステージビルド
+- [ ] CI/CD（GitHub Actions）
+- [ ] テスト自動化
 
--   **`npm install` でエラーが出る場合:**
-    - まず、ローカルPCの `frontend` ディレクトリにある `node_modules` フォルダと `package-lock.json` を削除してから、コンテナをリビルドし、再度コンテナ内で `npm install` を試してください。
+## 📄 ライセンス
+
+MIT License
 
 ---
+
+**作成者**: [チーム名]  
+**作成日**: 2025 年 1 月  
+**バージョン**: 1.0.0

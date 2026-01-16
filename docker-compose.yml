@@ -1,76 +1,81 @@
-# docker-compose.yml
-
 version: "3.8"
 
 services:
-  # バックエンド（Spring Boot）の設定
+  # フロントエンド (Vite + React + TypeScript)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: todo-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # node_modulesはコンテナ内に保持
+    environment:
+      - VITE_API_URL=http://localhost:8080/api
+    depends_on:
+      - backend
+    restart: "no"
+
+  # バックエンド (Spring Boot + Java)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    user: root
-    container_name: todo-backend-container
+    container_name: todo-backend
     ports:
-      - "8080:8080" # ← バックエンドのポート
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - maven-cache:/root/.m2 # Mavenキャッシュを永続化
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/todo_db
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-    volumes:
-      - ./backend:/app
-    command: sleep infinity # ←【変更点3】CMDではなくcommandで上書き
+      # JVMメモリ制限（重要！）
+      - JAVA_TOOL_OPTIONS=-Xmx256m -Xms128m
     depends_on:
       - db
-    restart: "no" # 開発中は手動で制御することが多いので明示的にOFF
+    command: sleep infinity
+    restart: "no"
 
-  # フロントエンド（Next.js）の設定
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: todo-frontend-container
-    ports:
-      # 3000番のポートをコンテナの3000番ポートに接続
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      #- /app/node_modules
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
-    depends_on:
-      - backend
-    restart: "no" # 開発中は手動で制御することが多いので明示的にOFF
-
-  # データベース (PostgreSQL) の設定
+  # データベース (PostgreSQL)
   db:
-    image: postgres:14
-    container_name: todo-db-container
+    image: postgres:16-alpine # alpine版で軽量化
+    container_name: todo-db
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_DB=todo_db
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:
-      - db-data:/var/lib/postgresql/data # データの永続化
-
-  # pgAdminの設定
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: my-pgadmin-container
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@example.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - db
+      - db-data:/var/lib/postgresql/data
     restart: unless-stopped
+    # PostgreSQLのメモリ制限
+    shm_size: 128mb
 
-# データの永続化設定
+  # Nginx (リバースプロキシ) - 開発時は起動しない
+  # 本番環境確認時のみ使用
+  nginx:
+    image: nginx:alpine
+    container_name: todo-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro # ビルド後の静的ファイル
+    depends_on:
+      - frontend
+      - backend
+    restart: "no"
+    profiles:
+      - production # 開発時は起動しない
+
+# ボリューム定義
 volumes:
-  db-data:
-  pgadmin_data:
+  db-data: # データベースデータの永続化
+  maven-cache: # Mavenキャッシュの永続化（ビルド高速化）

@@ -1,27 +1,26 @@
-# Dockerfile for Next.js frontend (Development)
+# 超軽量版 Dockerfile for Vite + React + TypeScript
 
-# ベースとなるNode.js環境を指定
-FROM node:18-alpine
+# Node.js Alpine版（約40MBのベースイメージ）
+FROM node:22-alpine
 
-# 作業ディレクトリを作成
+# 作業ディレクトリ
 WORKDIR /app
 
-# 依存ライブラリの情報を先にコピー
-COPY package.json ./
-
-# 依存ライブラリをインストール
-# Next.jsはネイティブモジュールに依存すことことがあるため、必要なビルドツールをインストール
-RUN apk add --no-cache gcompat
-
-# アプリケーションのソースコードをコピー
-COPY . .
-
-# Next.jsが使用するポートを公開
-EXPOSE 3000
-
-# Gitをインストール
+# Gitのインストール（alpine版はapkを使用）
 RUN apk add --no-cache git
 
-# 開発サーバーを起動
-CMD ["npm", "run", "dev"]
+# package.jsonとpackage-lock.jsonを先にコピー
+# （依存関係のキャッシュ効率化）
+COPY package*.json ./
 
+# 依存関係をインストール
+RUN npm install --prefer-offline --no-audit
+
+# ソースコードをコピー
+COPY . .
+
+# Vite開発サーバーのポート
+EXPOSE 5173
+
+# 開発サーバー起動（ホスト0.0.0.0で外部アクセス可能に）
+CMD ["npm", "run", "dev"]

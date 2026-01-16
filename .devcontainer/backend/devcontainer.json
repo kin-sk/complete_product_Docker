@@ -1,31 +1,57 @@
-// .devcontainer/backend/devcontainer.json
 {
-  // VSCodeのウィンドウ左下に表示される名前
-  "name": "ToDo App (Backend)",
+  "name": "ToDo App (Backend - Spring Boot)",
 
   // docker-compose.ymlの場所を指定
-  // このファイルから見て2階層上のため "../../" となる
   "dockerComposeFile": ["../../docker-compose.yml"],
 
-  // docker-compose.yml内のどのサービスを使うかを指定
+  // 使用するサービス
   "service": "backend",
 
-  // コンテナー内でVSCodeが開く作業フォルダ
+  // コンテナ内の作業ディレクトリ
   "workspaceFolder": "/app",
 
-  // コンテナーに接続するユーザー
+  // rootユーザーとして接続
   "remoteUser": "root",
 
-  // VSCodeの推奨拡張機能を指定（Java開発に便利）
+  // VSCodeの設定とおすすめ拡張機能
   "customizations": {
     "vscode": {
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.server.launchMode": "Standard",
+        "files.exclude": {
+          "**/.classpath": true,
+          "**/.project": true,
+          "**/.settings": true,
+          "**/.factorypath": true
+        }
+      },
       "extensions": [
-        "vscjava.vscode-java-pack",
-        "redhat.java",
-        "mhutchie.git-graph",
-        "mosapride.zenkaku",
-        "oderwat.indent-rainbow"
+        // Java開発必須パック
+        "vscjava.vscode-java-pack", // Java Extension Pack
+        "vscjava.vscode-spring-boot-dashboard", // Spring Boot Dashboard
+        "vmware.vscode-spring-boot", // Spring Boot Tools
+
+        // 便利な拡張機能
+        "mhutchie.git-graph", // Gitグラフ表示
+        "mosapride.zenkaku", // 全角スペース可視化
+        "oderwat.indent-rainbow", // インデントを色分け
+        "usernamehw.errorlens" // エラー行に直接表示
       ]
+    }
+  },
+
+  // コンテナ起動後に実行するコマンド
+  "postCreateCommand": "./mvnw dependency:go-offline",
+
+  // ポートフォワーディング
+  "forwardPorts": [8080],
+
+  // ポートの説明
+  "portsAttributes": {
+    "8080": {
+      "label": "Spring Boot API",
+      "onAutoForward": "notify"
     }
   }
 }

@@ -1,21 +1,37 @@
-# Gitでの除外ファイル
-# 依存関係ライブラリ
-/frontend/node_modules
-/backend/target
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# ビルド成果物
-/frontend/.next
-/frontend/build 
-/backend/build
+# Build output
+dist/
+build/
+*.log
 
-# OS.IDE固有のファイル
-.DS_Store 
-.vscode/*
+# Java
+target/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
 
-# ただし、チームで共有したいファイルは無視しない（コミット対象にする）
-!/.vscode/settings.json
-!/.vscode/extensions.json
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# 機密情報ファイル
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
 .env
-*.env.local
+.env.local
+.env.production.local
+
+# Docker
+docker-compose.override.yml
